@@ -8,42 +8,83 @@
 **Domain:** Financial Crime Compliance (AML/Fraud Detection)
 
 ### Executive Summary
-This project addressed a critical infrastructure gap during the migration of Anti-Money Laundering (AML) solutions from legacy on-premise databases (SQL Server/Oracle) to a cloud-native **PostgreSQL** environment.
+This project addressed a critical infrastructure gap during the strategic migration of Actimize's Anti-Money Laundering (AML) solutions from legacy on-premise databases (Microsoft SQL Server/Oracle) to a cloud-native **PostgreSQL** environment.
 
-I engineered a standardized **Data Validation Framework**—a library of optimized SQL scripts designed to validate complex banking data schemas against strict regulatory requirements. This framework replaced manual, error-prone checks, ensuring data integrity for high-stakes compliance systems.
-
----
-
-## ⚠️ The Challenge
-Financial Crime Compliance (FCC) systems require absolute data precision. A single `NULL` value in a key attribute or a dropped `Sector_Code` can cause regulatory detection engines to fail. The migration process faced three specific technical hurdles:
-
-1.  **Syntactical Incompatibility:** The existing validation library was written in T-SQL. Critical functions (e.g., `CHARINDEX`, `GETDATE`) did not exist in the target PostgreSQL environment, causing immediate script failures during the "Lift and Shift" process.
-2.  **Procedural Divergence:** Legacy scripts relied on unstructured `GOTO` statements for error handling, which PostgreSQL strictly does not support.
-3.  **Data Type Mismatches:** Differences in handling boolean logic (`BIT` vs `BOOLEAN`) and currency (`MONEY` vs `NUMERIC`) threatened financial precision.
+The primary objective was to transition the existing library of validation scripts—which were written in incompatible T-SQL—into a standardized, PostgreSQL-compliant framework. This automation ensured data accuracy for critical compliance entities like Customer Due Diligence (CDD) and Watch List Filtering (WLF).
 
 ---
 
-## 🛠️ The Solution
-I developed a **PostgreSQL-Native Validation Engine** utilizing a rigorous Waterfall methodology. The solution focused on refactoring logic to be cloud-compatible while establishing a permanent knowledge base for the team.
+## ⚠️ The Challenge: The "Translation" Gap
+The existing Data Validation (DV) library was heavily dependent on proprietary Microsoft SQL Server functions, making it incompatible with the new open-source PostgreSQL infrastructure. The migration faced three specific technical hurdles:
+
+1.  **Syntactical Incompatibility:** Critical functions used in legacy scripts (e.g., `CHARINDEX`, `GETDATE`) did not exist in PostgreSQL, causing immediate syntax errors (e.g., Error 42883) during testing.
+2.  **Procedural Divergence:** Legacy scripts used unstructured `GOTO` statements for flow control, which PostgreSQL strictly does not support, requiring a complete logic restructure.
+3.  **Data Type Mismatches:** Differences in handling boolean logic (`BIT` vs `BOOLEAN`) and currency (`MONEY` vs `NUMERIC`) threatened the precision of financial transaction data.
+
+---
+
+## 🛠️ The Solution: PostgreSQL-Native Validation Engine
+I developed a comprehensive validation framework using a rigorous Waterfall methodology (Discovery, Design, Development, Testing).
 
 ### 1. The Validation Taxonomy
-I implemented a structured taxonomy of checks to ensure 100% coverage of the Data Requirements Document (DRD):
+I implemented a standard taxonomy of checks to ensure 100% coverage of the Data Requirements Document (DRD):
 
-| Validation Type | SQL Logic Implemented | Business "Why" |
+| Validation Type | SQL Logic Implemented | Business Purpose |
 | :--- | :--- | :--- |
-| **Null Checks** | `WHERE attribute IS NULL` | Critical attributes (e.g., `Account_Key`) cannot be missing, or the risk model fails. |
-| **Referential Integrity** | `LEFT JOIN ... WHERE parent.Key IS NULL` | Ensuring no "Orphaned Accounts" exist without an owner in the Master Data. |
-| **Domain Integrity** | `NOT IN (SELECT Code FROM Ref_Table)` | Validating that codes (e.g., Currency = 'USD') match the allowed reference values. |
-| **Uniqueness** | `GROUP BY key HAVING COUNT(*) > 1` | Preventing duplicate Primary Keys which cause double-counting of risk exposure. |
+| **Null Checks** | `WHERE col IS NULL` | Attributes like `Account_Key` cannot be NULL or the detection engine fails. |
+| **Referential Integrity** | `LEFT JOIN ... WHERE parent.Key IS NULL` | Verifies relationships (e.g., an Account cannot exist without an owner). |
+| **Domain Integrity** | `NOT IN (SELECT Code FROM Ref_Table)` | Ensures codes (e.g., Currency = 'USD') match allowed reference values. |
+| **Uniqueness** | `GROUP BY key HAVING COUNT(*) > 1` | Prevents duplicate Primary Keys which cause double-counting of risk. |
 
 ### 2. Technical Refactoring (Code Case Study)
 *Note: The code below demonstrates the logic pattern used. No proprietary client data is shown.*
 
 #### **A. Solving String Manipulation Conflicts**
-Legacy scripts used `CHARINDEX` to parse data formats, which is invalid in Postgres. I refactored these queries to use `POSITION` or `STRPOS`.
+Legacy scripts used `CHARINDEX` to parse data formats, which is invalid in Postgres. I refactored these queries to use `POSITION`.
 
 **Legacy (T-SQL):**
 ```sql
 -- Fails in Postgres
 SELECT * FROM Transactions 
 WHERE CHARINDEX('AML', Reference_Text) > 0;
+```
+**Refactored (PostgreSQL):**
+```sql
+-- Optimized for Cloud Environment
+SELECT * FROM Transactions 
+WHERE POSITION('AML' IN Reference_Text) > 0;
+```
+#### **B. Handling Temporal Logic**
+AML detection is time-bound (e.g., "Transactions in the last 30 days"). The migration required shifting from GETDATE() to NOW() to prevent syntax errors in "Future Dated Transaction" checks.
+
+#### **C. Restructuring Control Flow**
+I replaced legacy spaghetti code (GOTO jumps) with structured control blocks, modernizing the procedural flow:
+```sql
+-- Legacy: GOTO Error_Handler
+-- New: Structured Exception Handling
+DO $$ 
+BEGIN 
+    -- Validation Logic 
+EXCEPTION WHEN OTHERS THEN 
+    RAISE NOTICE 'Error in validation block'; 
+END $$;
+```
+
+## 📚 Training Artifacts Catalog
+To ensure long-term sustainability, I designed a Training Artifacts Catalog to bridge the knowledge gap for future analysts:
+
+1. **Syntax Translation Matrix:** A comprehensive mapping document outlining rules for T-SQL to PL/pgSQL conversion (e.g., Map MONEY -> NUMERIC).
+
+2. **Standardized Script Library:** A centralized repository of validated, clean SQL scripts for CDD, WLF, and SAM modules.
+
+## 🚀 Impact & Results
+
+1. **80% Efficiency Gain:** Automated the error-detection process, slashing the data validation cycle time by ~80% and saving hundreds of hours of manual analysis per client implementation.
+
+2. **Standardization:** Established a new global standard for PostgreSQL-based data validation, ensuring consistency across AMER, EMEA, and APAC regions.
+
+3. **Executive Buy-In:** Final project findings and efficiency gains were presented directly to the leadership team.
+
+
+##### **Note: This repository contains a summary of the logic and methodology used based on the internship report. Proprietary code and client data have been omitted for confidentiality.**
+
