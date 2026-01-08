@@ -10,20 +10,20 @@
 ### Executive Summary
 This project addressed a critical infrastructure gap during the strategic migration of Actimize's Anti-Money Laundering (AML) solutions from legacy on-premise databases (Microsoft SQL Server/Oracle) to a cloud-native **PostgreSQL** environment.
 
-The primary objective was to transition the existing library of validation scripts—which were written in incompatible T-SQL—into a standardized, PostgreSQL-compliant framework. This automation ensured data accuracy for critical compliance entities like Customer Due Diligence (CDD) and Watch List Filtering (WLF).
+The primary objective was to transition the existing library of validation scripts which were written in incompatible T-SQL into a standardized, PostgreSQL compliant framework. This automation ensured data accuracy for critical compliance entities like Customer Due Diligence (CDD), Watch List Filtering (WLF) and Suspicious Activity Monitiring (SAM).
 
 ---
 
 ## ⚠️ The Challenge: The "Translation" Gap
 The existing Data Validation (DV) library was heavily dependent on proprietary Microsoft SQL Server functions, making it incompatible with the new open-source PostgreSQL infrastructure. The migration faced three specific technical hurdles:
 
-1.  **Syntactical Incompatibility:** Critical functions used in legacy scripts (e.g., `CHARINDEX`, `GETDATE`) did not exist in PostgreSQL, causing immediate syntax errors (e.g., Error 42883) during testing.
+1.  **Syntactical Incompatibility:** Critical functions used in legacy scripts (e.g., `CHARINDEX`, `GETDATE`) did not exist in PostgreSQL, causing immediate syntax errors during testing.
 2.  **Procedural Divergence:** Legacy scripts used unstructured `GOTO` statements for flow control, which PostgreSQL strictly does not support, requiring a complete logic restructure.
 3.  **Data Type Mismatches:** Differences in handling boolean logic (`BIT` vs `BOOLEAN`) and currency (`MONEY` vs `NUMERIC`) threatened the precision of financial transaction data.
 
 ---
 
-## 🛠️ The Solution: PostgreSQL-Native Validation Engine
+## 🛠️ The Solution: PostgreSQL Native Validation Engine
 I developed a comprehensive validation framework using a rigorous Waterfall methodology (Discovery, Design, Development, Testing).
 
 ### 1. The Validation Taxonomy
@@ -62,12 +62,12 @@ I replaced legacy spaghetti code (GOTO jumps) with structured control blocks, mo
 ```sql
 -- Legacy: GOTO Error_Handler
 -- New: Structured Exception Handling
-DO $$ 
+DO
 BEGIN 
     -- Validation Logic 
 EXCEPTION WHEN OTHERS THEN 
     RAISE NOTICE 'Error in validation block'; 
-END $$;
+END;
 ```
 
 ## 📚 Training Artifacts Catalog
@@ -79,11 +79,11 @@ To ensure long-term sustainability, I designed a Training Artifacts Catalog to b
 
 ## 🚀 Impact & Results
 
-1. **80% Efficiency Gain:** Automated the error-detection process, slashing the data validation cycle time by ~80% and saving hundreds of hours of manual analysis per client implementation.
+1. **80% Efficiency Gain:** Automated the error detection process, slashing the data validation cycle time by ~80% and saving hundreds of hours of manual analysis per client implementation.
 
-2. **Standardization:** Established a new global standard for PostgreSQL-based data validation, ensuring consistency across AMER, EMEA, and APAC regions.
+2. **Standardization:** Established a new global standard for PostgreSQL based data validation, ensuring consistency across AMER, EMEA, and APAC regions.
 
-3. **Executive Buy-In:** Final project findings and efficiency gains were presented directly to the leadership team.
+3. **Executive Buy-In:** Final project findings and efficiency gains were presented directly to the C-suite.
 
 
 ##### **Note: This repository contains a summary of the logic and methodology used based on the internship report. Proprietary code and client data have been omitted for confidentiality.**
